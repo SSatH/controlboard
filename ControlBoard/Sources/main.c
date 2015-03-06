@@ -27,6 +27,26 @@ static int i = 0;
 int main(void)
 {
 
+	uint32_t foutBUS;
+	uint32_t foutSYS;
+	System_Errors errore = ERRORS_NO_ERROR;
+
+	Clock_Config config = {
+			.source = CLOCK_CRYSTAL,
+			.fext = 16000000,
+			.foutSys = 10000000,
+			.busDivider = 2,
+			.flexbusDivider = 2,
+			.flashDivider = 4,
+	};
+
+	SIM_SCGC5 = SIM_SCGC5_PORTA_MASK | SIM_SCGC5_PORTB_MASK | SIM_SCGC5_PORTC_MASK | SIM_SCGC5_PORTD_MASK | SIM_SCGC5_PORTE_MASK;
+
+	errore = Clock_Init(&config);
+    errore = Clock_setDividers(config.busDivider, config.flexbusDivider, config.flashDivider);
+	foutSYS = Clock_getFrequency(CLOCK_SYSTEM);
+    foutBUS = Clock_getFrequency(CLOCK_BUS);
+
     for (;;) {
         i++;
     }
