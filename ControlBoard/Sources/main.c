@@ -22,10 +22,13 @@
 
 static int i = 0;
 
+#include "libohiboard.h"
 #include "board.h"
+#include "cli.h"
 
 int main(void)
 {
+<<<<<<< Updated upstream
     uint32_t foutBUS;
     uint32_t foutSYS;
     System_Errors errore = ERRORS_NO_ERROR;
@@ -42,12 +45,42 @@ int main(void)
     SIM_SCGC5 = SIM_SCGC5_PORTA_MASK | SIM_SCGC5_PORTB_MASK | SIM_SCGC5_PORTC_MASK | SIM_SCGC5_PORTD_MASK | SIM_SCGC5_PORTE_MASK;
 
     errore = Clock_Init(&config);
+=======
+
+	uint32_t foutBUS;
+	uint32_t foutSYS;
+	System_Errors errore = ERRORS_NO_ERROR;
+	uint8_t temp;
+
+	Clock_Config config = {
+			.source = CLOCK_CRYSTAL,
+			.fext = 16000000,
+			.foutSys = 10000000,
+			.busDivider = 2,
+			.flexbusDivider = 2,
+			.flashDivider = 4,
+	};
+
+	SIM_SCGC5 = SIM_SCGC5_PORTA_MASK | SIM_SCGC5_PORTB_MASK | SIM_SCGC5_PORTC_MASK | SIM_SCGC5_PORTD_MASK | SIM_SCGC5_PORTE_MASK;
+
+	errore = Clock_Init(&config);
+>>>>>>> Stashed changes
     errore = Clock_setDividers(config.busDivider, config.flexbusDivider, config.flashDivider);
     foutSYS = Clock_getFrequency(CLOCK_SYSTEM);
     foutBUS = Clock_getFrequency(CLOCK_BUS);
 
+<<<<<<< Updated upstream
     for (;;)
     {
+=======
+    cliInit();
+
+    for (;;) {
+    	temp = stringCompare ("help", "hela");
+
+    	cliCheck();
+
+>>>>>>> Stashed changes
         i++;
     }
     /* Never leave main */
