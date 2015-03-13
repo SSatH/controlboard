@@ -38,7 +38,7 @@
  * 0: OHIBOARD-R1 + SS@H000-0
  */
 #define PCB_VERSION                    0
-#define PROJECT_NAME                   "SS@H000-0"
+#define PROJECT_NAME                   "SS@H Control Board"
 #define PROJECT_COPYRIGTH              "(C) 2015 SS@H Team"
 
 #if PCB_VERSION ==  0
@@ -117,7 +117,6 @@ union Board_SystemStatusType
 
     struct
     {
-
         uint16_t notUsed               :6;
     } flags;
 } extern Board_systemStatus;

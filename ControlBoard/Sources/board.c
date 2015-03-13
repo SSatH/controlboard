@@ -28,27 +28,26 @@ union Board_SystemStatusType Board_systemStatus;
 
 void Board_setPinout (void)
 {
-	/* LED for DEBUG */
-	Gpio_config(LED_LED0_PIN, LED_LED0_CONFIG);
-	Gpio_config(LED_LED1_PIN, LED_LED1_CONFIG);
-	Gpio_config(LED_LED2_PIN, LED_LED2_CONFIG);
-	Gpio_config(LED_LED3_PIN, LED_LED3_CONFIG);
-	Gpio_config(LED_LED4_PIN, LED_LED4_CONFIG);
+    /* LED for DEBUG */
+    Gpio_config(LED_LED0_PIN, LED_LED0_CONFIG);
+    Gpio_config(LED_LED1_PIN, LED_LED1_CONFIG);
+    Gpio_config(LED_LED2_PIN, LED_LED2_CONFIG);
+    Gpio_config(LED_LED3_PIN, LED_LED3_CONFIG);
+    Gpio_config(LED_LED4_PIN, LED_LED4_CONFIG);
 
-	/* DIGITAL SIGNALS Pin Setting */
-
+    /* DIGITAL SIGNALS Pin Setting */
 }
 
 void Board_initGpio (void)
 {
-	/* LED for DEBUG */
-	LED_LED0_OFF();
-	LED_LED1_OFF();
-	LED_LED2_OFF();
-	LED_LED3_OFF();
-	LED_LED4_OFF();
+    /* LED for DEBUG */
+    LED_LED0_OFF();
+    LED_LED1_OFF();
+    LED_LED2_OFF();
+    LED_LED3_OFF();
+    LED_LED4_OFF();
 
-	/* DIGITAL OUTPUT */
+    /* DIGITAL OUTPUT */
 
 }
 
