@@ -23,10 +23,11 @@
 #ifndef BOARD_H_
 #define BOARD_H_
 
-//#include "libohiboard.h"
+#include "libohiboard.h"
 
 #define FW_MAJOR_VERSION              1
 #define FW_MINOR_VERSION              0
+#define FW_VERSION                    "1.0"
 /**
  *  Time stamp of current firmware version (-5GMT + DST).
  *  http://www.currenttimestamp.com/
@@ -54,6 +55,12 @@
 #define WIRELESS_RX_PIN                UART_PINS_PTE25
 #define WIRELESS_TX_PIN                UART_PINS_PTE24
 #define WIRELESS_BAUDRATE              115200
+
+/* DEBUG COMMUNICATION */
+#define DEBUG_DEV                      UART2
+#define DEBUG_RX_PIN                   UART_PINS_PTD2
+#define DEBUG_TX_PIN                   UART_PINS_PTD3
+#define DEBUG_BAUDRATE                 115200
 
 /* DISPLAY */
 #define OLED35046P_DEV                 IIC0
@@ -124,6 +131,8 @@ union Board_SystemStatusType
 typedef enum _Board_Errors
 {
     /* System Error  */
+
+	ERRORS_COMM_OK                    = 0x40,
 
 } Board_Errors;
 
