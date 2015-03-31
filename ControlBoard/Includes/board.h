@@ -27,7 +27,7 @@
 
 #define FW_MAJOR_VERSION              1
 #define FW_MINOR_VERSION              0
-#define FW_VERSION                    "1.0"
+#define FW_VERSION_STRING             "1.0"
 /**
  *  Time stamp of current firmware version (-5GMT + DST).
  *  http://www.currenttimestamp.com/
@@ -39,6 +39,8 @@
  * 0: OHIBOARD-R1 + SS@H000-0
  */
 #define PCB_VERSION                    0
+#define PCB_VERSION_STRING             "0"
+
 #define PROJECT_NAME                   "SS@H Control Board"
 #define PROJECT_COPYRIGTH              "(C) 2015 SS@H Team"
 

@@ -21,34 +21,28 @@
  ******************************************************************************/
 
 #include "cli.h"
-#include "board.h"
-#include "libohiboard.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-char version[16];
-//char cliBuf[32];
-char cliBuf[5];
-char tempBuf[64];
-int cliBufIndex;
+#define  CLI_BUFFER_SIZE      16
 
+static char Cli_buffer[CLI_BUFFER_SIZE];
+static uint8_t Cli_bufferIndex = 0;
 
+static void Cli_functionHelp(void* cmd, char* params);
+static void Cli_functionVersion(void* cmd, char* params);
 
-// this table must be sorted by command name
-const cliCommand_t cliCommandTable[] = {
-    {"help", "", cliFuncHelp},
-    {"stat", "", cliFuncStatus},
-    {"vers", "", cliFuncVer}
+const Cli_Command Cli_commandTable[] =
+{
+    {"help",    "", "", Cli_functionHelp},
+    {"version", "Print actual version of board and firmware", "", Cli_functionVersion},
 };
 
-#define CLI_N_CMDS         (sizeof cliCommandTable / sizeof cliCommandTable[0])
+#define CLI_COMMAND_TABLE_SIZED         (sizeof Cli_commandTable / sizeof Cli_commandTable[0])
 
-#define CLI_HELP_CMD           "help"
-#define CLI_STATUS_CMD         "stat"
-#define CLI_VERSION_CMD        "vers"
-
-static Uart_Config Debug_config = {
+static Uart_Config Cli_uartConfig = {
 
     .rxPin = DEBUG_RX_PIN,
     .txPin = DEBUG_TX_PIN,
@@ -61,116 +55,95 @@ static Uart_Config Debug_config = {
     .baudrate = DEBUG_BAUDRATE,
 };
 
-void cliUsage(cliCommand_t *cmd) {
-	Uart_sendString(DEBUG_DEV, "usage: ");
-	Uart_sendString(DEBUG_DEV, cmd->name);
-	Uart_putChar(DEBUG_DEV,' ');
-	Uart_sendString(DEBUG_DEV, cmd->params);
-    Uart_sendString(DEBUG_DEV, "\r\n");
+static void Cli_getCommand (char* name, Cli_Command* cmdFound)
+{
+    Cli_Command cmd = {name, NULL, NULL, NULL};
+    uint8_t i;
+
+    for (i = 0; i < CLI_COMMAND_TABLE_SIZED; i++)
+    {
+        if(strncmp(name, Cli_commandTable[i].name, strlen(Cli_commandTable[i].name)) == 0)
+        {
+            *cmdFound = Cli_commandTable[i];
+            return;
+        }
+    }
+    /* If we don't find any command, return null. */
+    cmdFound = 0;
 }
 
-void cliFuncHelp(void *cmd, char *cmdLine) {
-    int i;
+static void Cli_prompt(void)
+{
+    Uart_sendString(DEBUG_DEV, "\r\n> ");
+    memset(Cli_buffer, 0, sizeof(Cli_buffer));
+    Cli_bufferIndex = 0;
+}
 
-    Uart_sendString(DEBUG_DEV, "Available commands:\r\n\n");
+static void Cli_functionHelp(void* cmd, char* params)
+{
+    uint8_t i;
 
-    for (i = 0; i < CLI_N_CMDS; i++) {
-    Uart_sendString(DEBUG_DEV, cliCommandTable[i].name);
-    Uart_putChar(DEBUG_DEV,' ');
-	Uart_sendString(DEBUG_DEV, cliCommandTable[i].params);
-	Uart_sendString(DEBUG_DEV, "\r\n");
+    Uart_sendString(DEBUG_DEV, "Available commands:\r\n");
+    for (i = 0; i < CLI_COMMAND_TABLE_SIZED; i++)
+    {
+        Uart_sendString(DEBUG_DEV,Cli_commandTable[i].name);
+        Uart_sendString(DEBUG_DEV,": ");
+        Uart_sendString(DEBUG_DEV,Cli_commandTable[i].description);
+        Uart_sendString(DEBUG_DEV,"\r\n\t");
+        Uart_sendString(DEBUG_DEV,Cli_commandTable[i].params);
+        Uart_sendString(DEBUG_DEV,"\r\n");
     }
 }
 
-void cliFuncVer(void *cmd, char *cmdLine) {
-//	sprintf(tempBuf, "FW ver %s%s%s\r\n", FW_MAJOR_VERSION, ".", FW_MINOR_VERSION);
-	sprintf(tempBuf, "FW ver %s\r\n", FW_VERSION);
-    Uart_sendString (DEBUG_DEV, tempBuf);
+static void Cli_functionVersion(void* cmd, char* params)
+{
+
 }
 
-void cliPrompt(void) {
-	Uart_sendString (DEBUG_DEV, "\r\n> ");
-    memset(cliBuf, 0, sizeof(cliBuf));
-    cliBufIndex = 0;
-}
-
-void cliFuncStatus(void *cmd, char *cmdLine) {
-    const char *formatFloat = "%-12s%10.2f\r\n";
-    const char *formatInt = "%-12s%10d\r\n";
-    const char *formatString = "%-12s%10s\r\n";
-
-    uint16_t BatteryLevel = 0;
-    uint16_t MicroVcc = 0;
-    uint16_t MicroTemperature = 0;
-
-    sprintf(tempBuf, formatInt, "Battery level", BatteryLevel);
-    Uart_sendString (DEBUG_DEV, tempBuf);
-
-    sprintf(tempBuf, formatInt, "Processor Voltage", MicroVcc);
-    Uart_sendString (DEBUG_DEV, tempBuf);
-
-    sprintf(tempBuf, formatInt, "Processor Temperature", MicroTemperature);
-    Uart_sendString (DEBUG_DEV, tempBuf);
-}
-
-void cliCheck(void) {
-    cliCommand_t *cmd = NULL;
+void Cli_check(void)
+{
+    Cli_Command *cmd = NULL;
     char c;
 
     if (Uart_isCharPresent(DEBUG_DEV))
     {
     	Uart_getChar(DEBUG_DEV, &c);
-    	cliBuf[cliBufIndex++] = c;
-    	if(cliBufIndex == 4)
-    	{
-    		cliBuf[cliBufIndex] = '\0';
-    	}
+    	Cli_buffer[Cli_bufferIndex++] = c;
     }
 
-	if (cliBufIndex == 4)
-	{
+	if ((Cli_bufferIndex != 0) &&
+	    (Cli_buffer[Cli_bufferIndex-1] == '\r') && (Cli_buffer[Cli_bufferIndex-1] == '\n'))
+    {
 		Uart_sendString(DEBUG_DEV, "\r\n");
-		if(stringCompare (cliBuf, CLI_HELP_CMD) == 0)
-		{
-			cliFuncHelp(0, 0);
-		}
-		else if(stringCompare (cliBuf, CLI_STATUS_CMD) == 0)
-		{
-			cliFuncStatus(0,0);
-		}
-		else if(stringCompare (cliBuf, CLI_VERSION_CMD) == 0)
-		{
-			cliFuncVer(0,0);
-		}
+		Cli_getCommand(Cli_buffer,cmd);
+
+		if (cmd)
+		    cmd->cmdFunction(cmd, Cli_buffer + strlen(cmd->name));
 		else
-		{
-			Uart_sendString(DEBUG_DEV, "Command Error2 \r\n");
-	    }
+	        Uart_sendString(DEBUG_DEV, "Command not found!");
 
-		cliBufIndex = 0;
-
-		cliPrompt();
+		Cli_bufferIndex = 0;
+        Cli_prompt();
 	}
-	else if(cliBufIndex > 4)
+	else if(Cli_bufferIndex > CLI_BUFFER_SIZE-1)
 	{
-		Uart_sendString(DEBUG_DEV, "Command Error1 \r\n");
-		cliBufIndex = 0;
-		cliPrompt();
+	    Cli_bufferIndex = 0;
+		Cli_prompt();
 	}
-
-    return;
 }
 
+void Cli_init(void)
+{
+    Uart_open (DEBUG_DEV, 0, &Cli_uartConfig);
 
-void cliInit(void) {
-	Uart_open (DEBUG_DEV, 0, &Debug_config);
-	Uart_sendString (DEBUG_DEV, PROJECT_NAME);
-	Uart_sendString (DEBUG_DEV, "\r\n");
-	Uart_sendString (DEBUG_DEV, PROJECT_COPYRIGTH);
-	Uart_sendString (DEBUG_DEV, "\r\n");
-	cliFuncVer(0,0);
-	Uart_sendString (DEBUG_DEV, "\r\nCLI ready.\r\n");
+    Uart_sendString (DEBUG_DEV, PROJECT_NAME);
+    Uart_sendString (DEBUG_DEV, "\r\n");
+    Uart_sendString (DEBUG_DEV, PROJECT_COPYRIGTH);
+    Uart_sendString (DEBUG_DEV, "\r\n");
+    Cli_functionVersion(0,0);
+    Uart_sendString (DEBUG_DEV, "\r\nCLI ready.\r\n");
 
-    cliPrompt();
+    Cli_bufferIndex = 0;
+    Cli_prompt();
 }
 

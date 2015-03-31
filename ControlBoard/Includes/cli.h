@@ -23,21 +23,23 @@
 #ifndef CLI_H_
 #define CLI_H_
 
-typedef struct {
+#include "board.h"
+
+typedef struct
+{
     char *name;
+    char *description;
     char *params;
-    void (*cmdFunc)(void *cmd, char *cmdLine);
-} cliCommand_t;
+    void (*cmdFunction)(void *cmd, char *cmdLine);
+} Cli_Command;
 
-extern char version[16];
+void Cli_init(void);
+void Cli_usage(Cli_Command *cmd);
+void Cli_check(void);
 
-extern void cliInit(void);
-void cliUsage(cliCommand_t *cmd);
-void cliCheck(void);
-
-extern void cliFuncStatus(void *cmd, char *cmdLine);
-extern void cliFuncHelp(void *cmd, char *cmdLine);
-extern void cliFuncVer(void *cmd, char *cmdLine);
+//extern void cliFuncStatus(void *cmd, char *cmdLine);
+//extern void cliFuncHelp(void *cmd, char *cmdLine);
+//extern void cliFuncVer(void *cmd, char *cmdLine);
 
 
 #endif /* CLI_H_ */
