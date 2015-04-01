@@ -48,6 +48,8 @@ int main(void)
     foutSYS = Clock_getFrequency(CLOCK_SYSTEM);
     foutBUS = Clock_getFrequency(CLOCK_BUS);
 
+    for(uint32_t j = 0; j < 1000000; j++);
+
     Cli_init();
 
     for (;;)
