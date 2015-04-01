@@ -64,7 +64,10 @@ static void Cli_getCommand (char* name, Cli_Command* cmdFound)
     {
         if(strncmp(name, Cli_commandTable[i].name, strlen(Cli_commandTable[i].name)) == 0)
         {
-            *cmdFound = Cli_commandTable[i];
+            cmdFound->name = Cli_commandTable[i].name;
+            cmdFound->description = Cli_commandTable[i].description;
+            cmdFound->params = Cli_commandTable[i].params;
+            cmdFound->cmdFunction = Cli_commandTable[i].cmdFunction;
             return;
         }
     }
@@ -102,7 +105,7 @@ static void Cli_functionVersion(void* cmd, char* params)
 
 void Cli_check(void)
 {
-    Cli_Command *cmd = NULL;
+    Cli_Command cmd = {NULL, NULL, NULL, NULL};
     char c;
 
     if (Uart_isCharPresent(DEBUG_DEV))
@@ -112,13 +115,13 @@ void Cli_check(void)
     }
 
 	if ((Cli_bufferIndex != 0) &&
-	    (Cli_buffer[Cli_bufferIndex-1] == '\r') && (Cli_buffer[Cli_bufferIndex-1] == '\n'))
+	    (Cli_buffer[Cli_bufferIndex-2] == '\r') && (Cli_buffer[Cli_bufferIndex-1] == '\n'))
     {
 		Uart_sendString(DEBUG_DEV, "\r\n");
-		Cli_getCommand(Cli_buffer,cmd);
+		Cli_getCommand(Cli_buffer,&cmd);
 
-		if (cmd)
-		    cmd->cmdFunction(cmd, Cli_buffer + strlen(cmd->name));
+		if (cmd.name != NULL)
+		    cmd.cmdFunction(&cmd, Cli_buffer + strlen(cmd.name));
 		else
 	        Uart_sendString(DEBUG_DEV, "Command not found!");
 
