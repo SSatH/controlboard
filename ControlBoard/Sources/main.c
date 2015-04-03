@@ -28,6 +28,8 @@ int main(void)
 {
     uint8_t i;
 
+    uint16_t temp = 0;
+
 	uint32_t foutBUS;
 	uint32_t foutSYS;
 	System_Errors errore = ERRORS_NO_ERROR;
@@ -41,12 +43,26 @@ int main(void)
 			.flashDivider = 4,
 	};
 
+//	  Adc_Config ADCconf = {
+//	          .adcPin = ADC_PINS_PTE24,
+//	          .clkDiv = 1,
+//	          .clkSource = ADC_BUS_CLOCK_DIV2,
+//	          .sampleLength  = ADC_SHORT_SAMPLE,
+//	          .covertionSpeed = ADC_NORMAL_CONVERTION,
+//	          .resolution = ADC_RESOLUTION_16BIT,
+//	          .average = ADC_AVERAGE_1_SAMPLES,
+//	          .contConv = ADC_SINGLE_CONVERTION,
+//	          .voltRef = ADC_VREF,
+//	  };
+
 	SIM_SCGC5 = SIM_SCGC5_PORTA_MASK | SIM_SCGC5_PORTB_MASK | SIM_SCGC5_PORTC_MASK | SIM_SCGC5_PORTD_MASK | SIM_SCGC5_PORTE_MASK;
 
 	errore = Clock_Init(&config);
     errore = Clock_setDividers(config.busDivider, config.flexbusDivider, config.flashDivider);
     foutSYS = Clock_getFrequency(CLOCK_SYSTEM);
     foutBUS = Clock_getFrequency(CLOCK_BUS);
+
+//    errore =  Adc_init (ADC0, &ADCconf);
 
     for(uint32_t j = 0; j < 1000000; j++);
 
@@ -55,6 +71,8 @@ int main(void)
     for (;;)
     {
         Cli_check();
+
+//        Adc_readValue (ADC0, ADC_CH_SE17, &temp);
 
         i++;
     }

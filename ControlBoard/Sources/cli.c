@@ -33,11 +33,23 @@ static uint8_t Cli_bufferIndex = 0;
 
 static void Cli_functionHelp(void* cmd, char* params);
 static void Cli_functionVersion(void* cmd, char* params);
+static void Cli_functionStatus(void* cmd, char* params);
+
+/* Analog ADC useful define */
+#define ADC_FULLSCALE            4096
+#define ADC_BGR_mV               1000
+#define ADC_VTEMP25_dmV          7190
+#define ADC_VTEMP_SLOPE_uVC_hot  1769
+#define ADC_VTEMP_SLOPE_uVC_cold 1646
+#define ADC_VTEMP_SLOPE_uVC      1715
+
+#define BATTERY_GAIN             20/10
 
 const Cli_Command Cli_commandTable[] =
 {
     {"help",    "", "", Cli_functionHelp},
     {"version", "Print actual version of board and firmware", "", Cli_functionVersion},
+    {"status", "Print temperature of MCU (in °C), battery voltage and Vcc (in mV)", "", Cli_functionStatus},
 };
 
 #define CLI_COMMAND_TABLE_SIZED         (sizeof Cli_commandTable / sizeof Cli_commandTable[0])
@@ -53,6 +65,18 @@ static Uart_Config Cli_uartConfig = {
     .parity = UART_PARITY_NONE,
 
     .baudrate = DEBUG_BAUDRATE,
+};
+
+static Adc_Config ADCconf = {
+        .adcPin = ADC_PINS_PTE24,
+        .clkDiv = 1,
+        .clkSource = ADC_BUS_CLOCK_DIV2,
+        .sampleLength  = ADC_SHORT_SAMPLE,
+        .covertionSpeed = ADC_NORMAL_CONVERTION,
+        .resolution = ADC_RESOLUTION_12BIT,
+        .average = ADC_AVERAGE_4_SAMPLES,
+        .contConv = ADC_SINGLE_CONVERTION,
+        .voltRef = ADC_VREF,
 };
 
 static void Cli_getCommand (char* name, Cli_Command* cmdFound)
@@ -100,7 +124,70 @@ static void Cli_functionHelp(void* cmd, char* params)
 
 static void Cli_functionVersion(void* cmd, char* params)
 {
+    Uart_sendString(DEBUG_DEV, "Board Version: ");
+    Uart_sendString(DEBUG_DEV, PCB_VERSION_STRING);
+    Uart_sendString(DEBUG_DEV,"\r\n");
+    Uart_sendString(DEBUG_DEV, "Firmware Version: ");
+    Uart_sendString(DEBUG_DEV, FW_VERSION_STRING);
+    Uart_sendString(DEBUG_DEV,"\r\n");
+}
 
+static void Cli_functionStatus(void* cmd, char* params)
+{
+    uint16_t Measures_bandgap;
+
+    /** CPU voltage measured by ADC in 1mV */
+    uint16_t Measures_cpuVoltage = 0;
+    /** CPU temperature measured by ADC in 0.1°C */
+    uint16_t Measures_cpuTemperature = 0;
+    /** Battery voltage measured by ADC in 1mV */
+    uint16_t Measures_batteryVoltage = 0;
+
+    uint16_t cpuTemperature;
+
+    uint8_t stringValue[6];
+
+    Adc_readValue(ADC0, ADC_CH_BANDGAP, &Measures_bandgap);
+
+    /* Measure Vdd Voltage */
+    Measures_cpuVoltage = (uint16_t) (ADC_FULLSCALE * (uint32_t) ADC_BGR_mV / Measures_bandgap);
+
+    /* Measure CPU Temperature */
+    Adc_readValue(ADC0, ADC_CH_TEMP, &Measures_cpuTemperature);
+    cpuTemperature = (int16_t)
+            (Measures_cpuTemperature * ((int32_t) ADC_BGR_mV * 10) / Measures_bandgap);
+    if(cpuTemperature > ADC_VTEMP25_dmV)
+    {
+        Measures_cpuTemperature = (uint16_t) (250 -
+                ((cpuTemperature - ADC_VTEMP25_dmV) * (uint32_t) 1000 / ADC_VTEMP_SLOPE_uVC));
+    }
+    else
+    {
+        Measures_cpuTemperature = (uint16_t) (250 +
+                        ((ADC_VTEMP25_dmV - cpuTemperature) * (uint32_t) 1000 / ADC_VTEMP_SLOPE_uVC));
+    }
+
+
+    /* Battery voltage */
+    Adc_readValue(ADC0, ADC_CH_SE17, &Measures_batteryVoltage);
+    Measures_batteryVoltage = (uint16_t)
+            (Measures_batteryVoltage * (uint32_t) ADC_BGR_mV * BATTERY_GAIN / Measures_bandgap);
+//    Measures_batteryVoltage = (uint16_t) (Measures_batteryVoltage * (uint32_t) 3300 * 100 / 4096 /100);
+
+    u16td(stringValue, Measures_cpuVoltage);
+    Uart_sendString(DEBUG_DEV, "Voltage of MCU: ");
+    Uart_sendString(DEBUG_DEV, stringValue);
+    Uart_sendString(DEBUG_DEV,"\r\n");
+
+    u16td(stringValue, Measures_cpuTemperature);
+    Uart_sendString(DEBUG_DEV, "Temperature of MCU: ");
+    Uart_sendString(DEBUG_DEV, stringValue);
+    Uart_sendString(DEBUG_DEV,"\r\n");
+
+    u16td(stringValue, Measures_batteryVoltage);
+    Uart_sendString(DEBUG_DEV, "Voltage of battery: ");
+    Uart_sendString(DEBUG_DEV, stringValue);
+    Uart_sendString(DEBUG_DEV,"\r\n");
 }
 
 void Cli_check(void)
@@ -138,6 +225,8 @@ void Cli_check(void)
 void Cli_init(void)
 {
     Uart_open (DEBUG_DEV, 0, &Cli_uartConfig);
+
+    Adc_init (ADC0, &ADCconf);
 
     Uart_sendString (DEBUG_DEV, PROJECT_NAME);
     Uart_sendString (DEBUG_DEV, "\r\n");
