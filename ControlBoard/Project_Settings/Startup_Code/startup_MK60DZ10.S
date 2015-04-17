@@ -125,7 +125,7 @@ __isr_vector:
     .long   CMP1_IRQHandler                                 /* CMP1 interrupt*/
     .long   CMP2_IRQHandler                                 /* CMP2 interrupt*/
     .long   FTM0_IRQHandler                                 /* FTM0 fault, overflow and channels interrupt*/
-    .long   FTM1_IRQHandler                                 /* FTM1 fault, overflow and channels interrupt*/
+    .long   Ftm_isrFtm1                                 /* FTM1 fault, overflow and channels interrupt*/
     .long   FTM2_IRQHandler                                 /* FTM2 fault, overflow and channels interrupt*/
     .long   CMT_IRQHandler                                  /* CMT interrupt*/
     .long   RTC_IRQHandler                                  /* RTC interrupt*/
