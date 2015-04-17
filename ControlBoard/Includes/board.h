@@ -65,10 +65,10 @@
 #define DEBUG_BAUDRATE                 115200
 
 /* DISPLAY */
-#define OLED35046P_DEV                 IIC0
-#define OLED35046P_SCL                 IIC_PINS_PTB0
-#define OLED35046P_SDA                 IIC_PINS_PTB1
-#define OLED35046P_BAUDRATE            100000
+#define OLED35046P_DEV                 IIC1            //IIC0
+#define OLED35046P_SCL                 IIC_PINS_PTC10  //IIC_PINS_PTB0
+#define OLED35046P_SDA                 IIC_PINS_PTC11  //IIC_PINS_PTB1
+#define OLED35046P_BAUDRATE            200000
 
 /* KEYBOARD */
 #define KEYBOARD_UP_PIN                GPIO_PINS_PTB2
@@ -104,6 +104,10 @@
 #define LED_LED4_ON()                  Gpio_clear(LED_LED4_PIN)
 #define LED_LED4_OFF()                 Gpio_set(LED_LED4_PIN)
 
+#define LED_01_PIN                     GPIO_PINS_PTD7
+#define LED_01_CONFIG                  GPIO_PINS_OUTPUT
+#define LED_01_TOGGLE()                Gpio_toggle(LED_01_PIN)
+
 #endif // (PCB_VERSION == 0)
 
 union Board_TaskStatusType
@@ -127,6 +131,7 @@ union Board_SystemStatusType
     struct
     {
         uint16_t notUsed               :6;
+
     } flags;
 } extern Board_systemStatus;
 

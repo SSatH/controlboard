@@ -35,6 +35,8 @@ void Board_setPinout (void)
     Gpio_config(LED_LED3_PIN, LED_LED3_CONFIG);
     Gpio_config(LED_LED4_PIN, LED_LED4_CONFIG);
 
+    Gpio_config(LED_01_PIN, LED_01_CONFIG);
+
     /* DIGITAL SIGNALS Pin Setting */
 }
 
