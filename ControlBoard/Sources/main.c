@@ -23,6 +23,8 @@
 #include "libohiboard.h"
 #include "board.h"
 #include "cli.h"
+#include "application.h"
+#include "timer.h"
 
 int main(void)
 {
@@ -37,23 +39,11 @@ int main(void)
 	Clock_Config config = {
 			.source = CLOCK_CRYSTAL,
 			.fext = 16000000,
-			.foutSys = 10000000,
+			.foutSys = 100000000,
 			.busDivider = 2,
 			.flexbusDivider = 2,
 			.flashDivider = 4,
 	};
-
-//	  Adc_Config ADCconf = {
-//	          .adcPin = ADC_PINS_PTE24,
-//	          .clkDiv = 1,
-//	          .clkSource = ADC_BUS_CLOCK_DIV2,
-//	          .sampleLength  = ADC_SHORT_SAMPLE,
-//	          .covertionSpeed = ADC_NORMAL_CONVERTION,
-//	          .resolution = ADC_RESOLUTION_16BIT,
-//	          .average = ADC_AVERAGE_1_SAMPLES,
-//	          .contConv = ADC_SINGLE_CONVERTION,
-//	          .voltRef = ADC_VREF,
-//	  };
 
 	SIM_SCGC5 = SIM_SCGC5_PORTA_MASK | SIM_SCGC5_PORTB_MASK | SIM_SCGC5_PORTC_MASK | SIM_SCGC5_PORTD_MASK | SIM_SCGC5_PORTE_MASK;
 
@@ -62,17 +52,18 @@ int main(void)
     foutSYS = Clock_getFrequency(CLOCK_SYSTEM);
     foutBUS = Clock_getFrequency(CLOCK_BUS);
 
-//    errore =  Adc_init (ADC0, &ADCconf);
-
     for(uint32_t j = 0; j < 1000000; j++);
 
+    Board_setPinout();
+    Board_initGpio();
+    Timer_init();
     Cli_init();
+    App_init();
+    App_startUp();
 
     for (;;)
     {
         Cli_check();
-
-//        Adc_readValue (ADC0, ADC_CH_SE17, &temp);
 
         i++;
     }
